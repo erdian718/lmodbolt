@@ -27,19 +27,19 @@ import (
 )
 
 func metaTx(l *lua.State, mbucket int) int {
-	l.NewTable(0, 4)
+	l.NewTable(0, 8)
 	idx := l.AbsIndex(-1)
 
 	l.Push("bucket")
-	l.PushClosure(lTxBucket, mbucket)
+	l.PushClosure(lCollectorBucket, mbucket)
 	l.SetTableRaw(-3)
 
 	l.Push("buckets")
-	l.PushClosure(lTxBuckets, mbucket)
+	l.PushClosure(lCollectorBuckets, mbucket)
 	l.SetTableRaw(-3)
 
 	l.Push("delete")
-	l.Push(lTxDelete)
+	l.Push(lCollectorDelete)
 	l.SetTableRaw(-3)
 
 	l.Push("writeto")
@@ -51,61 +51,6 @@ func metaTx(l *lua.State, mbucket int) int {
 	l.SetTableRaw(-3)
 
 	return idx
-}
-
-func lTxBucket(l *lua.State) int {
-	tx := toTx(l, 1)
-	sname := l.ToString(2)
-	bname := []byte(sname)
-	bucket := tx.Bucket(bname)
-	if bucket == nil {
-		if tx.Writable() {
-			var e error
-			bucket, e = tx.CreateBucket(bname)
-			if e != nil {
-				panic(e)
-			}
-		} else {
-			panic("bolt: bucket not found: " + sname)
-		}
-	}
-	l.Push(bucket)
-	l.PushIndex(lua.FirstUpVal - 1)
-	l.SetMetaTable(-2)
-	return 1
-}
-
-func lTxBuckets(l *lua.State) int {
-	var k []byte
-	tx := toTx(l, 1)
-	c := tx.Cursor()
-	if l.IsNil(2) {
-		k, _ = c.First()
-	} else {
-		k, _ = c.Seek([]byte(l.ToString(2)))
-	}
-	l.PushClosure(func(l *lua.State) int {
-		if k == nil {
-			return 0
-		}
-		l.Push(string(k))
-		l.Push(tx.Bucket(k))
-		l.PushIndex(lua.FirstUpVal - 1)
-		l.SetMetaTable(-2)
-		k, _ = c.Next()
-		return 2
-	}, lua.FirstUpVal-1)
-	return 1
-}
-
-func lTxDelete(l *lua.State) int {
-	e := toTx(l, 1).DeleteBucket([]byte(l.ToString(2)))
-	if e == nil {
-		return 0
-	} else {
-		l.Push(e.Error())
-		return 1
-	}
 }
 
 func lTxWriteTo(l *lua.State) int {

@@ -23,12 +23,23 @@ misrepresented as being the original software.
 package lmodbolt
 
 import (
+	"encoding/binary"
 	"io"
 
 	"ofunc/lua"
 
 	"github.com/boltdb/bolt"
 )
+
+type collector interface {
+	Bucket(name []byte) *bolt.Bucket
+	CreateBucket(name []byte) (*bolt.Bucket, error)
+	Cursor() *bolt.Cursor
+	DeleteBucket(name []byte) error
+	Writable() bool
+}
+
+var endian = binary.LittleEndian
 
 func toDB(l *lua.State, i int) *bolt.DB {
 	if v, ok := l.GetRaw(1).(*bolt.DB); ok {
@@ -46,10 +57,58 @@ func toTx(l *lua.State, i int) *bolt.Tx {
 	}
 }
 
+func toBucket(l *lua.State, i int) *bolt.Bucket {
+	if v, ok := l.GetRaw(1).(*bolt.Bucket); ok {
+		return v
+	} else {
+		panic("bolt: invalid bucket: " + l.ToString(i))
+	}
+}
+
+func toCollector(l *lua.State, i int) collector {
+	if v, ok := l.GetRaw(1).(collector); ok {
+		return v
+	} else {
+		panic("bolt: invalid tx or bucket: " + l.ToString(i))
+	}
+}
+
 func toWriter(l *lua.State, i int) io.Writer {
 	if v, ok := l.GetRaw(1).(io.Writer); ok {
 		return v
 	} else {
 		panic("bolt: invalid writer: " + l.ToString(i))
 	}
+}
+
+func deckey(l *lua.State, xs []byte) {
+	switch xs[0] {
+	case 1:
+		l.Push(int64(endian.Uint64(xs[1:])))
+	case 2:
+		l.Push(string(xs[1:]))
+	default:
+		panic("bolt: invalid key data")
+	}
+}
+
+func enckey(l *lua.State, i int) (xs []byte) {
+	switch t := l.TypeOf(i); t {
+	case lua.TypeNumber:
+		if v, e := l.TryInteger(i); e == nil {
+			xs = make([]byte, 9)
+			xs[0] = 1
+			endian.PutUint64(xs[1:], uint64(v))
+		} else {
+			panic("bolt: invalid key type: float")
+		}
+	case lua.TypeString:
+		v := l.ToString(i)
+		xs = make([]byte, len(v)+1)
+		xs[0] = 2
+		copy(xs[1:], v)
+	default:
+		panic("bolt: invalid key type: " + t.String())
+	}
+	return xs
 }
