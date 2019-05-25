@@ -20,68 +20,21 @@ misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
 
-// boltdb/bolt bindings for Lua.
 package lmodbolt
 
 import (
-	"path/filepath"
-	"sync"
-
 	"ofunc/lua"
-
-	"github.com/boltdb/bolt"
 )
 
-type info struct {
-	ref int
-	db  *bolt.DB
-}
+func metaTx(l *lua.State) int {
+	l.NewTable(0, 4)
+	idx := l.AbsIndex(-1)
 
-var cache = map[string]*info{}
-var mutex sync.Mutex
+	// TODO
 
-// Open opens the module.
-func Open(l *lua.State) int {
-	mtx := metaTx(l)
-	mdb := metaDB(l, mtx)
-	l.NewTable(0, 2)
-
-	l.Push("version")
-	l.Push("0.0.1")
+	l.Push("__index")
+	l.PushIndex(idx)
 	l.SetTableRaw(-3)
 
-	l.Push("open")
-	l.PushClosure(lOpen, mdb)
-	l.SetTableRaw(-3)
-
-	return 1
-}
-
-func lOpen(l *lua.State) int {
-	path := l.ToString(1)
-	if p, e := filepath.Abs(path); e == nil {
-		path = p
-	}
-	mutex.Lock()
-	defer mutex.Unlock()
-	if x, ok := cache[path]; ok {
-		x.ref += 1
-		l.Push(x.db)
-	} else {
-		db, e := bolt.Open(path, 0666, nil)
-		if e != nil {
-			l.Push(nil)
-			l.Push(e.Error())
-			return 2
-		}
-		x = &info{
-			db:  db,
-			ref: 1,
-		}
-		cache[db.Path()] = x
-		l.Push(db)
-	}
-	l.PushIndex(lua.FirstUpVal - 1)
-	l.SetMetaTable(-2)
-	return 1
+	return idx
 }

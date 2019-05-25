@@ -23,17 +23,28 @@ misrepresented as being the original software.
 package lmodbolt
 
 import (
+	"errors"
+	"fmt"
+
 	"ofunc/lua"
 
 	"github.com/boltdb/bolt"
 )
 
-func metaDB(l *lua.State) int {
-	l.NewTable(0, 0)
+func metaDB(l *lua.State, mtx int) int {
+	l.NewTable(0, 4)
 	idx := l.AbsIndex(-1)
 
 	l.Push("close")
 	l.Push(lDBClose)
+	l.SetTableRaw(-3)
+
+	l.Push("view")
+	l.PushClosure(lDBView, mtx)
+	l.SetTableRaw(-3)
+
+	l.Push("update")
+	l.PushClosure(lDBUpdate, mtx)
 	l.SetTableRaw(-3)
 
 	l.Push("__index")
@@ -63,6 +74,54 @@ func lDBClose(l *lua.State) int {
 		}
 	} else {
 		l.Push(bolt.ErrDatabaseNotOpen.Error())
+		return 1
+	}
+}
+
+func lDBView(l *lua.State) int {
+	e := toDB(l, 1).View(func(tx *bolt.Tx) error {
+		l.PushIndex(2)
+		l.Push(tx)
+		l.PushIndex(lua.FirstUpVal - 1)
+		l.SetMetaTable(-2)
+		if msg := l.PCall(1, 1, false); msg == nil {
+			if l.IsNil(-1) {
+				return nil
+			} else {
+				return errors.New(l.ToString(-1))
+			}
+		} else {
+			return fmt.Errorf("%v", msg)
+		}
+	})
+	if e == nil {
+		return 0
+	} else {
+		l.Push(e.Error())
+		return 1
+	}
+}
+
+func lDBUpdate(l *lua.State) int {
+	e := toDB(l, 1).Update(func(tx *bolt.Tx) error {
+		l.PushIndex(2)
+		l.Push(tx)
+		l.PushIndex(lua.FirstUpVal - 1)
+		l.SetMetaTable(-2)
+		if msg := l.PCall(1, 1, false); msg == nil {
+			if l.IsNil(-1) {
+				return nil
+			} else {
+				return errors.New(l.ToString(-1))
+			}
+		} else {
+			return fmt.Errorf("%v", msg)
+		}
+	})
+	if e == nil {
+		return 0
+	} else {
+		l.Push(e.Error())
 		return 1
 	}
 }
