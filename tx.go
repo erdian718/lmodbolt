@@ -88,11 +88,12 @@ func lTxBuckets(l *lua.State) int {
 		if k == nil {
 			return 0
 		}
+		l.Push(string(k))
 		l.Push(tx.Bucket(k))
 		l.PushIndex(lua.FirstUpVal - 1)
 		l.SetMetaTable(-2)
 		k, _ = c.Next()
-		return 1
+		return 2
 	}, lua.FirstUpVal-1)
 	return 1
 }
