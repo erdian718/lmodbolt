@@ -23,33 +23,18 @@ misrepresented as being the original software.
 package lmodbolt
 
 import (
-	"io"
-
 	"ofunc/lua"
-
-	"github.com/boltdb/bolt"
 )
 
-func toDB(l *lua.State, i int) *bolt.DB {
-	if v, ok := l.GetRaw(1).(*bolt.DB); ok {
-		return v
-	} else {
-		panic("bolt: invalid database: " + l.ToString(i))
-	}
-}
+func metaBucket(l *lua.State) int {
+	l.NewTable(0, 0)
+	idx := l.AbsIndex(-1)
 
-func toTx(l *lua.State, i int) *bolt.Tx {
-	if v, ok := l.GetRaw(1).(*bolt.Tx); ok {
-		return v
-	} else {
-		panic("bolt: invalid tx: " + l.ToString(i))
-	}
-}
+	// TODO
 
-func toWriter(l *lua.State, i int) io.Writer {
-	if v, ok := l.GetRaw(1).(io.Writer); ok {
-		return v
-	} else {
-		panic("bolt: invalid writer: " + l.ToString(i))
-	}
+	l.Push("__index")
+	l.PushIndex(idx)
+	l.SetTableRaw(-3)
+
+	return idx
 }

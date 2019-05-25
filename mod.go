@@ -42,7 +42,8 @@ var mutex sync.Mutex
 
 // Open opens the module.
 func Open(l *lua.State) int {
-	mtx := metaTx(l)
+	mbucket := metaBucket(l)
+	mtx := metaTx(l, mbucket)
 	mdb := metaDB(l, mtx)
 	l.NewTable(0, 2)
 
