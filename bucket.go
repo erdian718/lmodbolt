@@ -39,8 +39,8 @@ func metaBucket(l *lua.State) int {
 	l.PushClosure(lCollectorBuckets, idx)
 	l.SetTableRaw(-3)
 
-	l.Push("delete")
-	l.Push(lCollectorDelete)
+	l.Push("delbucket")
+	l.Push(lCollectorDelBucket)
 	l.SetTableRaw(-3)
 
 	l.Push("get")
@@ -63,7 +63,11 @@ func metaBucket(l *lua.State) int {
 }
 
 func lBucketGet(l *lua.State) int {
-	_, e := lmodmsgpack.DecodeBytes(l, toBucket(l, 1).Get(enckey(l, 2)))
+	xs := toBucket(l, 1).Get(enckey(l, 2))
+	if xs == nil {
+		return 0
+	}
+	_, e := lmodmsgpack.DecodeBytes(l, xs)
 	if e != nil {
 		panic(e.Error())
 	}
@@ -71,7 +75,14 @@ func lBucketGet(l *lua.State) int {
 }
 
 func lBucketSet(l *lua.State) int {
-	e := toBucket(l, 1).Put(enckey(l, 2), lmodmsgpack.EncodeBytes(l, 3))
+	var e error
+	b := toBucket(l, 1)
+	k := enckey(l, 2)
+	if l.IsNil(3) {
+		e = b.Delete(k)
+	} else {
+		e = b.Put(k, lmodmsgpack.EncodeBytes(l, 3))
+	}
 	if e != nil {
 		panic(e.Error())
 	}

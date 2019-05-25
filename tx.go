@@ -38,8 +38,8 @@ func metaTx(l *lua.State, mbucket int) int {
 	l.PushClosure(lCollectorBuckets, mbucket)
 	l.SetTableRaw(-3)
 
-	l.Push("delete")
-	l.Push(lCollectorDelete)
+	l.Push("delbucket")
+	l.Push(lCollectorDelBucket)
 	l.SetTableRaw(-3)
 
 	l.Push("writeto")

@@ -76,12 +76,10 @@ func lCollectorBuckets(l *lua.State) int {
 	return 1
 }
 
-func lCollectorDelete(l *lua.State) int {
+func lCollectorDelBucket(l *lua.State) int {
 	e := toCollector(l, 1).DeleteBucket(enckey(l, 2))
-	if e == nil {
-		return 0
-	} else {
-		l.Push(e.Error())
-		return 1
+	if e != nil {
+		panic(e)
 	}
+	return 0
 }
