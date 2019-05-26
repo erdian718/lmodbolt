@@ -39,7 +39,7 @@ type collector interface {
 	Writable() bool
 }
 
-var endian = binary.LittleEndian
+var endian = binary.BigEndian
 
 func toDB(l *lua.State, i int) *bolt.DB {
 	if v, ok := l.GetRaw(1).(*bolt.DB); ok {
