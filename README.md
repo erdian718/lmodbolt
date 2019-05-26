@@ -75,14 +75,17 @@ Writes the entire database to a writer.
 
 Retrieves a nested bucket by `key`.
 If the bucket does not exist then it will be created automatically.
+`c` is a tx or a bucket.
 
 ### c:buckets([key])
 
 Returns an iterator that can traverse over all key/bucket pairs (start from `key`) in a bucket in sorted order.
+`c` is a tx or a bucket.
 
 ### c:delbucket(key)
 
 Deletes a bucket at the given `key`.
+`c` is a tx or a bucket.
 
 ### bucket:get(key)
 
