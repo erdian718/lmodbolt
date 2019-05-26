@@ -32,23 +32,23 @@ func metaTx(l *lua.State, mbucket int) int {
 
 	l.Push("bucket")
 	l.PushClosure(lCollectorBucket, mbucket)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("buckets")
 	l.PushClosure(lCollectorBuckets, mbucket)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("delbucket")
 	l.Push(lCollectorDelBucket)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("writeto")
 	l.Push(lTxWriteTo)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("__index")
 	l.PushIndex(idx)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	return idx
 }

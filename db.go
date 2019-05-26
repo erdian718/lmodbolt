@@ -37,19 +37,19 @@ func metaDB(l *lua.State, mtx int) int {
 
 	l.Push("close")
 	l.Push(lDBClose)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("view")
 	l.PushClosure(lDBView, mtx)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("update")
 	l.PushClosure(lDBUpdate, mtx)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("__index")
 	l.PushIndex(idx)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	return idx
 }

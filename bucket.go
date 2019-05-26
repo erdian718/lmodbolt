@@ -33,31 +33,31 @@ func metaBucket(l *lua.State) int {
 
 	l.Push("bucket")
 	l.PushClosure(lCollectorBucket, idx)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("buckets")
 	l.PushClosure(lCollectorBuckets, idx)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("delbucket")
 	l.Push(lCollectorDelBucket)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("get")
 	l.Push(lBucketGet)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("set")
 	l.Push(lBucketSet)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("pairs")
 	l.Push(lBucketPairs)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	l.Push("__index")
 	l.PushIndex(idx)
-	l.SetTableRaw(-3)
+	l.SetTableRaw(idx)
 
 	return idx
 }
